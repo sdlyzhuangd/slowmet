@@ -14,23 +14,18 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a purple toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        colorScheme: ColorScheme.dark(
+          primary: Colors.deepPurple,
+          secondary: Colors.deepPurpleAccent,
+          background: const Color(0xFF1A1A1A), // 深色背景
+        ),
+        scaffoldBackgroundColor: const Color(0xFF1A1A1A), // 页面背景色
         useMaterial3: true,
+        sliderTheme: SliderThemeData(
+          activeTrackColor: Colors.deepPurple,
+          thumbColor: Colors.deepPurpleAccent,
+          inactiveTrackColor: Colors.deepPurple.withOpacity(0.3),
+        ),
       ),
       home: const MyHomePage(title: '超慢跑节拍器'),
     );
@@ -112,53 +107,78 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // 添加一个构建拍号指示器的方法
   Widget _buildBeatIndicator() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // 第一拍指示器
-        Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: beatCount == 0 && isPlaying 
-                ? Colors.red 
-                : Colors.red.withOpacity(0.3),
-          ),
-          child: Center(
-            child: Text(
-              '1',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.black26,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 第一拍指示器
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: beatCount == 0 && isPlaying 
+                  ? Colors.red 
+                  : Colors.red.withOpacity(0.2),
+              boxShadow: beatCount == 0 && isPlaying
+                  ? [
+                      BoxShadow(
+                        color: Colors.red.withOpacity(0.5),
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                      )
+                    ]
+                  : null,
+            ),
+            child: Center(
+              child: Text(
+                '1',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(width: 20),
-        // 第二拍指示器
-        Container(
-          width: 60,
-          height: 60,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: beatCount == 1 && isPlaying 
-                ? Colors.green 
-                : Colors.green.withOpacity(0.3),
-          ),
-          child: Center(
-            child: Text(
-              '2',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
+          const SizedBox(width: 20),
+          // 第二拍指示器
+          Container(
+            width: 60,
+            height: 60,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: beatCount == 1 && isPlaying 
+                  ? Colors.green 
+                  : Colors.green.withOpacity(0.2),
+              boxShadow: beatCount == 1 && isPlaying
+                  ? [
+                      BoxShadow(
+                        color: Colors.green.withOpacity(0.5),
+                        blurRadius: 20,
+                        spreadRadius: 2,
+                      )
+                    ]
+                  : null,
+            ),
+            child: Center(
+              child: Text(
+                '2',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -166,7 +186,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: Colors.black12,
         title: Text(widget.title),
       ),
       body: Center(
@@ -175,15 +195,17 @@ class _MyHomePageState extends State<MyHomePage> {
           children: <Widget>[
             Text(
               '节拍: ${bpm.toInt()} BPM',
-              style: Theme.of(context).textTheme.headlineMedium,
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                color: Colors.white,
+              ),
             ),
             const SizedBox(height: 20),
-            // 添加滑动条控制 BPM
+            // BPM 滑动条
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 40),
               child: Row(
                 children: [
-                  const Text('60'),
+                  Text('60', style: TextStyle(color: Colors.white70)),
                   Expanded(
                     child: Slider(
                       value: bpm,
@@ -197,31 +219,38 @@ class _MyHomePageState extends State<MyHomePage> {
                       },
                     ),
                   ),
-                  const Text('240'),
+                  Text('240', style: TextStyle(color: Colors.white70)),
                 ],
               ),
             ),
             const SizedBox(height: 20),
             Text(
               isPlaying ? '节拍器运行中' : '点击开始',
-              style: Theme.of(context).textTheme.titleLarge,
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                color: Colors.white70,
+              ),
             ),
             const SizedBox(height: 40),
-            // 使用新的拍号指示器替换原来的文本显示
             _buildBeatIndicator(),
             const SizedBox(height: 40),
             Text(
               '每小节2拍\n以二分音符为单位\n红色为重拍，绿色为轻拍',
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Colors.white60,
+              ),
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.deepPurple,
         onPressed: _toggleMetronome,
         tooltip: isPlaying ? '停止' : '开始',
-        child: Icon(isPlaying ? Icons.stop : Icons.play_arrow),
+        child: Icon(
+          isPlaying ? Icons.stop : Icons.play_arrow,
+          color: Colors.white,
+        ),
       ),
     );
   }
