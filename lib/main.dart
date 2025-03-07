@@ -57,21 +57,22 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   bool isPlaying = false;
-  final player = AudioPlayer();
-  final player2 = AudioPlayer();
+  final playerHigh = AudioPlayer();  // 重音
+  final playerLow = AudioPlayer();   // 轻音
+  int beatCount = 0;  // 用于跟踪当前是第几拍
   
   @override
   void initState() {
     super.initState();
     // 预加载音频文件
-    player.setSource(AssetSource('ding.wav'));
-    player2.setSource(AssetSource('da.wav'));
+    playerHigh.setSource(AssetSource('ding.wav'));  // 重音
+    playerLow.setSource(AssetSource('da.wav'));     // 轻音
   }
 
   @override
   void dispose() {
-    player.dispose();
-    player2.dispose();
+    playerHigh.dispose();
+    playerLow.dispose();
     super.dispose();
   }
 
@@ -79,6 +80,7 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       isPlaying = !isPlaying;
       if (isPlaying) {
+        beatCount = 0;
         _startMetronome();
       }
     });
@@ -89,14 +91,23 @@ class _MyHomePageState extends State<MyHomePage> {
     const interval = 60000 / bpm; // 计算每拍间隔（毫秒）
     
     while (isPlaying) {
-      player.resume(); // 播放"叮"
-      await Future.delayed(Duration(milliseconds: (interval ~/ 2)));
-      if (!isPlaying) break;
+      if (beatCount % 2 == 0) {
+        playerHigh.resume(); // 第一拍（重音）
+      } else {
+        playerLow.resume();  // 第二拍（轻音）
+      }
       
-      player2.resume(); // 播放"嗒"
-      await Future.delayed(Duration(milliseconds: (interval ~/ 2)));
+      beatCount = (beatCount + 1) % 2;  // 在0和1之间循环
+      
+      setState(() {});  // 更新显示当前拍号
+      await Future.delayed(Duration(milliseconds: interval.toInt()));
       if (!isPlaying) break;
     }
+  }
+
+  String _getCurrentBeat() {
+    if (!isPlaying) return '';
+    return '第 ${beatCount + 1} 拍';
   }
 
   @override
@@ -118,6 +129,19 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               isPlaying ? '节拍器运行中' : '点击开始',
               style: Theme.of(context).textTheme.titleLarge,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              _getCurrentBeat(),
+              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                color: beatCount % 2 == 0 ? Colors.red : Colors.blue,
+              ),
+            ),
+            const SizedBox(height: 40),
+            Text(
+              '每小节2拍\n以二分音符为单位\n红色为重音，蓝色为轻音',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ],
         ),
