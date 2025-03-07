@@ -60,6 +60,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final playerHigh = AudioPlayer();  // 重音
   final playerLow = AudioPlayer();   // 轻音
   int beatCount = 0;  // 用于跟踪当前是第几拍
+  double bpm = 180;   // 添加 BPM 变量，初始值为 180
   
   @override
   void initState() {
@@ -87,8 +88,7 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _startMetronome() async {
-    const bpm = 180;
-    const interval = 60000 / bpm; // 计算每拍间隔（毫秒）
+    final interval = 60000 / bpm; // 计算每拍间隔（毫秒）
     
     while (isPlaying) {
       if (beatCount % 2 == 0) {
@@ -110,6 +110,58 @@ class _MyHomePageState extends State<MyHomePage> {
     return '第 ${beatCount + 1} 拍';
   }
 
+  // 添加一个构建拍号指示器的方法
+  Widget _buildBeatIndicator() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        // 第一拍指示器
+        Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: beatCount == 0 && isPlaying 
+                ? Colors.red 
+                : Colors.red.withOpacity(0.3),
+          ),
+          child: Center(
+            child: Text(
+              '1',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(width: 20),
+        // 第二拍指示器
+        Container(
+          width: 60,
+          height: 60,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: beatCount == 1 && isPlaying 
+                ? Colors.green 
+                : Colors.green.withOpacity(0.3),
+          ),
+          child: Center(
+            child: Text(
+              '2',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -122,24 +174,44 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Text(
-              '节拍: 180 BPM',
+              '节拍: ${bpm.toInt()} BPM',
               style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            const SizedBox(height: 20),
+            // 添加滑动条控制 BPM
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Row(
+                children: [
+                  const Text('60'),
+                  Expanded(
+                    child: Slider(
+                      value: bpm,
+                      min: 60,
+                      max: 240,
+                      divisions: 180,
+                      onChanged: isPlaying ? null : (value) {
+                        setState(() {
+                          bpm = value;
+                        });
+                      },
+                    ),
+                  ),
+                  const Text('240'),
+                ],
+              ),
             ),
             const SizedBox(height: 20),
             Text(
               isPlaying ? '节拍器运行中' : '点击开始',
               style: Theme.of(context).textTheme.titleLarge,
             ),
-            const SizedBox(height: 20),
-            Text(
-              _getCurrentBeat(),
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: beatCount % 2 == 0 ? Colors.red : Colors.blue,
-              ),
-            ),
+            const SizedBox(height: 40),
+            // 使用新的拍号指示器替换原来的文本显示
+            _buildBeatIndicator(),
             const SizedBox(height: 40),
             Text(
-              '每小节2拍\n以二分音符为单位\n红色为重音，蓝色为轻音',
+              '每小节2拍\n以二分音符为单位\n红色为重拍，绿色为轻拍',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleMedium,
             ),
