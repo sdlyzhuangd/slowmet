@@ -65,8 +65,8 @@ class _MyHomePageState extends State<MyHomePage> {
   void initState() {
     super.initState();
     // 预加载音频文件
-    playerHigh.setSource(AssetSource('ding.wav'));  // 重音
-    playerLow.setSource(AssetSource('da.wav'));     // 轻音
+    playerHigh.setSourceAsset('ding.wav');  // 重音
+    playerLow.setSourceAsset('da.wav');     // 轻音
   }
 
   @override
@@ -92,9 +92,9 @@ class _MyHomePageState extends State<MyHomePage> {
     
     while (isPlaying) {
       if (beatCount % 2 == 0) {
-        playerHigh.resume(); // 第一拍（重音）
+        await playerHigh.play(AssetSource('ding.wav')); // 第一拍（重音）
       } else {
-        playerLow.resume();  // 第二拍（轻音）
+        await playerLow.play(AssetSource('da.wav'));  // 第二拍（轻音）
       }
       
       beatCount = (beatCount + 1) % 2;  // 在0和1之间循环
