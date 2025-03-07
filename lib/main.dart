@@ -262,6 +262,17 @@ class _MyHomePageState extends State<MyHomePage> {
                 color: isDark ? Colors.white60 : Colors.black45,
               ),
             ),
+            const Spacer(),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: Text(
+                '完全由AI生成！ 20643241@qq.com',
+                style: TextStyle(
+                  color: isDark ? Colors.white38 : Colors.black38,
+                  fontSize: 12,
+                ),
+              ),
+            ),
           ],
         ),
       ),
