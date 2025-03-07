@@ -5,21 +5,35 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  bool _isDarkMode = true;
+
+  void toggleTheme() {
+    setState(() {
+      _isDarkMode = !_isDarkMode;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
+      themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
       theme: ThemeData(
-        colorScheme: ColorScheme.dark(
+        // 亮色主题
+        colorScheme: ColorScheme.light(
           primary: Colors.deepPurple,
           secondary: Colors.deepPurpleAccent,
-          background: const Color(0xFF1A1A1A), // 深色背景
+          background: Colors.white,
         ),
-        scaffoldBackgroundColor: const Color(0xFF1A1A1A), // 页面背景色
+        scaffoldBackgroundColor: Colors.white,
         useMaterial3: true,
         sliderTheme: SliderThemeData(
           activeTrackColor: Colors.deepPurple,
@@ -27,24 +41,41 @@ class MyApp extends StatelessWidget {
           inactiveTrackColor: Colors.deepPurple.withOpacity(0.3),
         ),
       ),
-      home: const MyHomePage(title: '超慢跑节拍器'),
+      darkTheme: ThemeData(
+        // 暗色主题
+        colorScheme: ColorScheme.dark(
+          primary: Colors.deepPurple,
+          secondary: Colors.deepPurpleAccent,
+          background: const Color(0xFF1A1A1A),
+        ),
+        scaffoldBackgroundColor: const Color(0xFF1A1A1A),
+        useMaterial3: true,
+        sliderTheme: SliderThemeData(
+          activeTrackColor: Colors.deepPurple,
+          thumbColor: Colors.deepPurpleAccent,
+          inactiveTrackColor: Colors.deepPurple.withOpacity(0.3),
+        ),
+      ),
+      home: MyHomePage(
+        title: '超慢跑节拍器',
+        onThemeToggle: toggleTheme,
+        isDarkMode: _isDarkMode,
+      ),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
+  const MyHomePage({
+    super.key, 
+    required this.title,
+    required this.onThemeToggle,
+    required this.isDarkMode,
+  });
 
   final String title;
+  final VoidCallback onThemeToggle;
+  final bool isDarkMode;
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -56,7 +87,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final playerLow = AudioPlayer();   // 轻音
   int beatCount = 0;  // 用于跟踪当前是第几拍
   double bpm = 180;   // 添加 BPM 变量，初始值为 180
-  
+
   @override
   void initState() {
     super.initState();
@@ -107,87 +138,70 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // 添加一个构建拍号指示器的方法
   Widget _buildBeatIndicator() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.black26,
+        color: isDark ? Colors.black26 : Colors.grey.shade200,
         borderRadius: BorderRadius.circular(20),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // 第一拍指示器
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: beatCount == 0 && isPlaying 
-                  ? Colors.red 
-                  : Colors.red.withOpacity(0.2),
-              boxShadow: beatCount == 0 && isPlaying
-                  ? [
-                      BoxShadow(
-                        color: Colors.red.withOpacity(0.5),
-                        blurRadius: 20,
-                        spreadRadius: 2,
-                      )
-                    ]
-                  : null,
-            ),
-            child: Center(
-              child: Text(
-                '1',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
+          _buildBeatLight(0, Colors.red),
           const SizedBox(width: 20),
-          // 第二拍指示器
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: beatCount == 1 && isPlaying 
-                  ? Colors.green 
-                  : Colors.green.withOpacity(0.2),
-              boxShadow: beatCount == 1 && isPlaying
-                  ? [
-                      BoxShadow(
-                        color: Colors.green.withOpacity(0.5),
-                        blurRadius: 20,
-                        spreadRadius: 2,
-                      )
-                    ]
-                  : null,
-            ),
-            child: Center(
-              child: Text(
-                '2',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
+          _buildBeatLight(1, Colors.green),
         ],
+      ),
+    );
+  }
+
+  Widget _buildBeatLight(int beat, Color color) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isActive = beatCount == beat && isPlaying;
+    return Container(
+      width: 60,
+      height: 60,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: isActive ? color : color.withOpacity(isDark ? 0.2 : 0.1),
+        boxShadow: isActive
+            ? [
+                BoxShadow(
+                  color: color.withOpacity(0.5),
+                  blurRadius: 20,
+                  spreadRadius: 2,
+                )
+              ]
+            : null,
+      ),
+      child: Center(
+        child: Text(
+          '${beat + 1}',
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.black87,
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.black12,
+        backgroundColor: isDark ? Colors.black12 : Colors.white,
         title: Text(widget.title),
+        actions: [
+          // 修改主题切换按钮
+          IconButton(
+            icon: Icon(isDark ? Icons.light_mode : Icons.dark_mode),
+            onPressed: widget.onThemeToggle,
+          ),
+        ],
       ),
       body: Center(
         child: Column(
@@ -196,7 +210,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               '节拍: ${bpm.toInt()} BPM',
               style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                color: Colors.white,
+                color: isDark ? Colors.white : Colors.black87,
               ),
             ),
             const SizedBox(height: 20),
@@ -205,7 +219,11 @@ class _MyHomePageState extends State<MyHomePage> {
               padding: const EdgeInsets.symmetric(horizontal: 40),
               child: Row(
                 children: [
-                  Text('60', style: TextStyle(color: Colors.white70)),
+                  Text('60', 
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.black54
+                    )
+                  ),
                   Expanded(
                     child: Slider(
                       value: bpm,
@@ -219,7 +237,11 @@ class _MyHomePageState extends State<MyHomePage> {
                       },
                     ),
                   ),
-                  Text('240', style: TextStyle(color: Colors.white70)),
+                  Text('240', 
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.black54
+                    )
+                  ),
                 ],
               ),
             ),
@@ -227,7 +249,7 @@ class _MyHomePageState extends State<MyHomePage> {
             Text(
               isPlaying ? '节拍器运行中' : '点击开始',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: Colors.white70,
+                color: isDark ? Colors.white70 : Colors.black54,
               ),
             ),
             const SizedBox(height: 40),
@@ -237,7 +259,7 @@ class _MyHomePageState extends State<MyHomePage> {
               '每小节2拍\n以二分音符为单位\n红色为重拍，绿色为轻拍',
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Colors.white60,
+                color: isDark ? Colors.white60 : Colors.black45,
               ),
             ),
           ],
