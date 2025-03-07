@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 void main() {
   runApp(const MyApp());
@@ -31,7 +32,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(title: '超慢跑节拍器'),
     );
   }
 }
@@ -55,71 +56,77 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+  bool isPlaying = false;
+  final player = AudioPlayer();
+  final player2 = AudioPlayer();
+  
+  @override
+  void initState() {
+    super.initState();
+    // 预加载音频文件
+    player.setSource(AssetSource('ding.wav'));
+    player2.setSource(AssetSource('da.wav'));
+  }
 
-  void _incrementCounter() {
+  @override
+  void dispose() {
+    player.dispose();
+    player2.dispose();
+    super.dispose();
+  }
+
+  void _toggleMetronome() {
     setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
+      isPlaying = !isPlaying;
+      if (isPlaying) {
+        _startMetronome();
+      }
     });
+  }
+
+  void _startMetronome() async {
+    const bpm = 180;
+    const interval = 60000 / bpm; // 计算每拍间隔（毫秒）
+    
+    while (isPlaying) {
+      player.resume(); // 播放"叮"
+      await Future.delayed(Duration(milliseconds: (interval ~/ 2)));
+      if (!isPlaying) break;
+      
+      player2.resume(); // 播放"嗒"
+      await Future.delayed(Duration(milliseconds: (interval ~/ 2)));
+      if (!isPlaying) break;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text(widget.title),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
             Text(
-              '$_counter',
+              '节拍: 180 BPM',
               style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            const SizedBox(height: 20),
+            Text(
+              isPlaying ? '节拍器运行中' : '点击开始',
+              style: Theme.of(context).textTheme.titleLarge,
             ),
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+        onPressed: _toggleMetronome,
+        tooltip: isPlaying ? '停止' : '开始',
+        child: Icon(isPlaying ? Icons.stop : Icons.play_arrow),
+      ),
     );
   }
 }
