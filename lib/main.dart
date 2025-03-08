@@ -117,9 +117,22 @@ class _MyHomePageState extends State<MyHomePage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      // 分钟设置
                       Column(
                         children: [
                           const Text('分钟'),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.arrow_drop_up),
+                                onPressed: () {
+                                  setState(() {
+                                    if (tempMinutes < 99) tempMinutes++;
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
                           SizedBox(
                             width: 60,
                             child: TextField(
@@ -129,19 +142,52 @@ class _MyHomePageState extends State<MyHomePage> {
                                 border: OutlineInputBorder(),
                               ),
                               controller: TextEditingController(
-                                text: tempMinutes.toString(),
+                                text: tempMinutes.toString().padLeft(2, '0'),
                               ),
                               onChanged: (value) {
-                                tempMinutes = int.tryParse(value) ?? 0;
+                                final newValue = int.tryParse(value) ?? 0;
+                                if (newValue >= 0 && newValue <= 99) {
+                                  tempMinutes = newValue;
+                                }
                               },
                             ),
+                          ),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.arrow_drop_down),
+                                onPressed: () {
+                                  setState(() {
+                                    if (tempMinutes > 0) tempMinutes--;
+                                  });
+                                },
+                              ),
+                            ],
                           ),
                         ],
                       ),
                       const SizedBox(width: 20),
+                      // 秒钟设置
                       Column(
                         children: [
                           const Text('秒钟'),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.arrow_drop_up),
+                                onPressed: () {
+                                  setState(() {
+                                    if (tempSeconds < 59) {
+                                      tempSeconds++;
+                                    } else {
+                                      tempSeconds = 0;
+                                      if (tempMinutes < 99) tempMinutes++;
+                                    }
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
                           SizedBox(
                             width: 60,
                             child: TextField(
@@ -151,16 +197,51 @@ class _MyHomePageState extends State<MyHomePage> {
                                 border: OutlineInputBorder(),
                               ),
                               controller: TextEditingController(
-                                text: tempSeconds.toString(),
+                                text: tempSeconds.toString().padLeft(2, '0'),
                               ),
                               onChanged: (value) {
-                                tempSeconds = int.tryParse(value) ?? 0;
+                                final newValue = int.tryParse(value) ?? 0;
+                                if (newValue >= 0 && newValue <= 59) {
+                                  tempSeconds = newValue;
+                                }
                               },
                             ),
+                          ),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.arrow_drop_down),
+                                onPressed: () {
+                                  setState(() {
+                                    if (tempSeconds > 0) {
+                                      tempSeconds--;
+                                    } else if (tempMinutes > 0) {
+                                      tempSeconds = 59;
+                                      tempMinutes--;
+                                    }
+                                  });
+                                },
+                              ),
+                            ],
                           ),
                         ],
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 16),
+                  // 添加清除按钮
+                  TextButton.icon(
+                    onPressed: () {
+                      setState(() {
+                        tempMinutes = 0;
+                        tempSeconds = 0;
+                      });
+                    },
+                    icon: const Icon(Icons.clear),
+                    label: const Text('清除'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.red,
+                    ),
                   ),
                 ],
               );
