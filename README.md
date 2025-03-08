@@ -9,4 +9,5 @@
 3. flutter build apk --release 生成Android release
 4. flutter build windows --release 生成win发行版本
 5. 也可以其他版本，命令请问ai
-    
+   ![img.png](img.png)
+![img_1.png](img_1.png)
